@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AwkOS2 — Games</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap');
+
+:root {
+  --bg:         #060810;
+  --panel:      #0b0e1a;
+  --border:     #161d2e;
+  --green:      #00ff88;
+  --glow:       rgba(0,255,136,0.55);
+  --gdim:       rgba(0,255,136,0.12);
+  --blue:       #00aaff;
+  --bdim:       rgba(0,170,255,0.15);
+  --bglow:      rgba(0,170,255,0.55);
+  --amber:      #ffb300;
+  --text:       #7a9ab0;
+  --text-hi:    #c8e4f0;
+  --red:        #ff3a4a;
+  --tile:       #0d1320;
+  --mono:       'Share Tech Mono', monospace;
+  --orb:        'Orbitron', sans-serif;
+  --r:          8px;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* subtle grid pattern bg */
+body {
+  background-image:
+    linear-gradient(rgba(0,255,136,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.018) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  position: sticky; top: 0; z-index: 50;
+  height: 52px;
+  background: rgba(6,8,16,0.9);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 18px;
+}
+
+.logo {
+  font-family: var(--orb);
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--green);
+  text-shadow: 0 0 18px var(--glow);
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+.logo em { color: var(--blue); font-style:normal; text-shadow:0 0 12px rgba(0,170,255,0.6); }
+
+#title-sep {
+  width: 1px; height: 22px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.subtitle {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text);
+  opacity: 0.5;
+}
+
+.spacer { flex: 1; }
+
+#search {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text-hi);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 14px;
+  width: 200px;
+  outline: none;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#search::placeholder { color: #2a3a4a; }
+#search:focus { border-color: var(--green); box-shadow: 0 0 0 2px var(--gdim); }
+
+#btn-add {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 16px;
+  cursor: pointer;
+  border-radius: 20px;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 8px var(--glow);
+  box-shadow: 0 0 12px var(--gdim);
+  transition: background 0.15s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+#btn-add:hover {
+  background: var(--gdim);
+  box-shadow: 0 0 24px var(--glow);
+}
+
+#btn-git {
+  background: transparent;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 16px;
+  cursor: pointer;
+  border-radius: 20px;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 8px var(--bglow);
+  box-shadow: 0 0 12px var(--bdim);
+  text-decoration: none;
+  transition: background 0.15s, box-shadow 0.2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+#btn-git:hover {
+  background: var(--bdim);
+  box-shadow: 0 0 24px var(--bglow);
+}
+
+#clock {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  opacity: 0.45;
+  white-space: nowrap;
+}
+
+/* ── GAME GRID ── */
+#main {
+  padding: 32px 28px 80px;
+}
+
+#game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 18px;
+}
+
+.game-tile {
+  background: var(--tile);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.18s;
+  animation: pop 0.28s cubic-bezier(.34,1.56,.64,1) both;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+@keyframes pop {
+  from { opacity:0; transform:scale(0.88); }
+  to   { opacity:1; transform:scale(1); }
+}
+.game-tile:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 28px var(--gdim), 0 6px 24px rgba(0,0,0,0.5);
+  transform: translateY(-4px) scale(1.02);
+}
+.game-tile:active { transform: scale(0.97); }
+
+/* thumbnail */
+.thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #0a1020;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+.thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.game-tile:hover .thumb img { transform: scale(1.06); }
+
+.thumb .fallback-icon {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--orb);
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--green);
+  text-shadow: 0 0 20px var(--glow);
+  opacity: 0.4;
+}
+
+/* green top edge glow on hover */
+.game-tile::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--glow);
+  opacity:0;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+.game-tile:hover::before { opacity:1; }
+
+/* info strip */
+.game-info {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.game-name {
+  font-size: 11.5px;
+  color: var(--text-hi);
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  word-break: break-word;
+  transition: color 0.15s;
+}
+.game-tile:hover .game-name { color: var(--green); }
+
+.game-path {
+  font-size: 9px;
+  color: var(--text);
+  opacity: 0.35;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* delete btn */
+.del-btn {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 20px; height: 20px;
+  background: var(--red);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  display: none;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  padding: 0;
+  transition: transform 0.1s;
+}
+.game-tile:hover .del-btn { display: block; }
+.del-btn:hover { transform: scale(1.2); background: #ff0022; }
+
+/* ── EMPTY STATE ── */
+#empty {
+  display: none;
+  text-align: center;
+  padding: 100px 20px;
+}
+#empty .e-icon {
+  font-family: var(--orb);
+  font-size: 48px;
+  color: var(--border);
+  margin-bottom: 14px;
+}
+#empty .e-text { font-size: 12px; letter-spacing: 0.1em; opacity: 0.4; }
+
+/* ── ADD GAME DRAWER ── */
+#overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+}
+#overlay.open { display: flex; }
+
+#drawer {
+  background: var(--panel);
+  border: 1px solid var(--green);
+  box-shadow: 0 0 80px rgba(0,255,136,0.12), 0 0 0 1px #000;
+  width: 460px;
+  max-width: 96vw;
+  border-radius: var(--r);
+  overflow: hidden;
+  animation: drawin 0.22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes drawin {
+  from { opacity:0; transform:scale(0.9) translateY(20px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+
+#drawer-head {
+  background: var(--green);
+  color: #000;
+  font-family: var(--orb);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  padding: 9px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#drawer-head button {
+  background: none; border: none; color: #000;
+  font-size: 18px; line-height: 1; cursor: pointer; font-weight: 900;
+}
+#drawer-head button:hover { opacity: 0.5; }
+
+#drawer-body {
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.f { display: flex; flex-direction: column; gap: 5px; }
+.f label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  text-shadow: 0 0 6px rgba(255,179,0,0.4);
+}
+.f input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-hi);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.f input::placeholder { color: #253040; }
+.f input:focus { border-color: var(--green); box-shadow: 0 0 0 2px var(--gdim); }
+
+.f-row { display: flex; gap: 12px; }
+.f-row .f { flex: 1; }
+
+/* preview */
+.preview {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.p-thumb {
+  width: 56px; height: 56px;
+  border-radius: 6px;
+  background: #0a1020;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--orb);
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--green);
+  text-shadow: 0 0 12px var(--glow);
+}
+.p-thumb img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+.p-info { display:flex; flex-direction:column; gap:4px; overflow:hidden; }
+.p-name { font-size:13px; color:var(--text-hi); }
+.p-path { font-size:9px; color:var(--text); opacity:0.45; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; }
+
+#drawer-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 7px 18px;
+  cursor: pointer;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  transition: all 0.15s;
+}
+.btn:hover { border-color: var(--text-hi); color: var(--text-hi); }
+.btn.ok {
+  border-color: var(--green);
+  color: var(--green);
+  text-shadow: 0 0 6px var(--glow);
+  box-shadow: 0 0 10px var(--gdim);
+}
+.btn.ok:hover { background: var(--gdim); box-shadow: 0 0 24px var(--glow); }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  background: var(--green);
+  color: #000;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  padding: 8px 22px;
+  border-radius: 20px;
+  z-index: 999;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s;
+  opacity: 0;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo">AWK<em>OS</em>2 - EZiER<em>OS</em></div>
+  <div id="title-sep"></div>
+  <div class="subtitle">GAMES</div>
+  <div class="spacer"></div>
+  <input id="search" type="text" placeholder="Search games..." oninput="render()">
+  <button id="btn-add" onclick="openDrawer()">+ ADD GAME</button>
+  <a id="btn-git" href="https://github.com/ricksansez9-star/ezierosgaming" target="_blank">GITHUB REPO</a>
+  <div id="clock"></div>
+</div>
+
+<div id="main">
+  <div id="game-grid"></div>
+  <div id="empty">
+    <div class="e-icon">⬡</div>
+    <div class="e-text">NO GAMES FOUND</div>
+  </div>
+</div>
+
+<div id="overlay" onclick="if(event.target===this)closeDrawer()">
+  <div id="drawer">
+    <div id="drawer-head">
+      <span>ADD GAME</span>
+      <button onclick="closeDrawer()">✕</button>
+    </div>
+    <div id="drawer-body">
+      <div class="f">
+        <label>GAME NAME</label>
+        <input id="d-name" placeholder="e.g. Balatro" oninput="updatePreview()">
+      </div>
+      <div class="f">
+        <label>FILE PATH OR URL</label>
+        <input id="d-file" placeholder="../Program Files/Games/Game.html  or  https://..." oninput="updatePreview()">
+      </div>
+      <div class="f">
+        <label>ICON PATH OR URL</label>
+        <input id="d-icon" placeholder="../sys64/icon.png  or  https://img.url/icon.png" oninput="updatePreview()">
+      </div>
+
+      <div class="preview">
+        <div class="p-thumb" id="p-thumb"><span id="p-fall">?</span></div>
+        <div class="p-info">
+          <div class="p-name" id="p-name">Game Name</div>
+          <div class="p-path" id="p-path">path/to/game.html</div>
+        </div>
+      </div>
+
+      <div id="drawer-actions">
+        <button class="btn" onclick="closeDrawer()">CANCEL</button>
+        <button class="btn ok" onclick="addGame()">ADD GAME</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  GAMES LIST — add your games here
+// ══════════════════════════════════════════════════
+let games = [
+  { name: 'Half Life 1', icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/70/capsule_616x353.jpg?t=1745368462', file: 'games/halflife.html' },
+  { name: 'Minecraft 1.8 ', icon: 'https://www.minecraft.net/content/dam/minecraftnet/franchise/component-library/parallaxC/scene_default/day/Focus_Cherry.png', file: 'games/Minecraft 1.8 2x fps.html' },
+  { name: 'Minecraft 1.12 ', icon: 'https://www.minecraft.net/content/dam/minecraftnet/franchise/component-library/parallaxC/scene_default/day/Focus_Cherry.png', file: 'games/Minecraft 1.12.html' },
+  { name: 'Mario 64 ', icon: 'https://s3.amazonaws.com/gameopedia_covers/covers/291779/2c138eb2b338d6f0db383d47ccedb946.png', file: 'games/N64 Mario 64.html' },
+  { name: 'Hollow Knight', icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlX0XzMgaLleJG-WgAUDUhTrLav5Mcr9BaSZSvE0DfbAPXEsr5wESN_lnk0o4SF_Tj_kZJ&s=10', file: 'games/HallowKnight.html'},
+  { name: 'Kindergarden 2', icon: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1067850/capsule_616x353.jpg?t=1713346724', file: 'games/Kindergarden 2.html'},
+  { name: 'Undertale', icon: 'https://s3.amazonaws.com/gameopedia_covers/covers/504052/afa774e7566c0e592f9a3d958a70d73e.png', file: 'games/Undertale.html'},
+  { name: 'Garrys Mod', icon: 'https://images.steamusercontent.com/ugc/395553315328698553/C96F9BF14AE6439C24DD3292687A30B1DC498660/', file: 'games/GMOD.html'},
+  { name: 'Fallout 1', icon: 'https://upload.wikimedia.org/wikipedia/en/a/af/Fallout.jpg', file: 'games/Fallout1.html'},
+  { name: 'Deltarune', icon: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQBIdec1F35Z3BT1O6W7E1VcteVCHrdCe7b5T01poydLvS4M_nP', file: 'games/Deltarune.html'},
+  { name: 'Minecraft 1.21', icon: 'https://www.minecraft.net/content/dam/minecraftnet/franchise/component-library/parallaxC/scene_default/day/Focus_Cherry.png', file: 'games/MC1.21.html'},
+  { name: 'Kindergarden 1', icon: 'https://m.media-amazon.com/images/M/MV5BY2Q1ZTQxYzctZTA1Ny00Mjc0LTk3YjgtMmJlZmIyOWQ2MzdmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg', file: 'games/Kindergarden.html'},
+  { name: 'Bloodmoney', icon: 'https://static.wikia.nocookie.net/bloodmoneyclick/images/f/fc/Harvey_Natural.png/revision/latest?cb=20250822110942', file: 'games/BloodMoney.html'},
+  { name: 'The DVD Corner Game', icon: 'https://www.minitool.com/images/uploads/2019/06/what-is-dvd-1.jpg', file: 'games/DVD_BOUNCE.html'},
+  { name: 'Animal Crossing', icon: 'https://animalcrossingworld.com/wp-content/uploads/2026/04/animal-crossing-series-25th-anniversary-artwork-thank-you-790x444.jpg', file: 'games/animal_crossing.html'},
+  { name: 'SILKSONG?!', icon: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Silksong.jpg/250px-Silksong.jpg', file: 'games/hollow_knight__silksong.html'},
+  { name: 'Geometry Dash', icon: 'https://upload.wikimedia.org/wikipedia/en/3/35/Geometry_Dash_Logo.PNG', file: 'games/geometry_dash.html' },
+  { name: 'Doom', icon: 'https://upload.wikimedia.org/wikipedia/en/5/57/Doom_cover_art.jpg', file: 'games/doom.html' },
+  { name: 'Doom 2', icon: 'https://upload.wikimedia.org/wikipedia/en/e/e3/Doom_II_-_Hell_on_Earth_Coverart.png', file: 'games/doom_2.html' },
+  { name: 'FNF: Garcello', icon: 'https://static.wikia.nocookie.net/fridaynightfunking/images/e/ed/SmokeEmOutStruggle.png', file: 'games/fnf_garcello.html' },
+  { name: 'FNF: Kapi', icon: 'https://static.wikia.nocookie.net/fridaynightfunking/images/f/f6/VS_Kapi.png', file: 'games/fnf_kapi.html' },
+  { name: 'FNF: Sonic.EXE', icon: 'https://static.wikia.nocookie.net/fridaynightfunking/images/e/ec/SonicEXE_V2_icon.png', file: 'games/fnf_sonic_exe.html' },
+  { name: 'Omori', icon: 'https://upload.wikimedia.org/wikipedia/en/d/d4/Omori_Video_Game_Cover.png', file: 'games/omori.html' },
+  { name: 'Class of 09', icon: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1443430/capsule_616x353.jpg', file: 'games/class_of_09.html' },
+  
+  // ── INJECTED GAME STASH STAGE ──
+  { name: 'Cookie Clicker', icon: 'https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/cookieclicker/img/perfectCookie.png', file: 'games/cookie_clicker.html' },
+  { name: 'Geometry Dash (Web Dash Mod)', icon: 'https://web-dashers.github.io/assets/logo.png', file: 'games/geometry_dash.html' },
+  { name: 'Plague Inc.', icon: 'https://cf.geekdo-images.com/g9vK9Y0E1Y-6_zQ0Ubeu3g__opencard/img/k3D0Bv_S6g_S_HwM9Lw7WfB89Xk=/75x75/filters:strip_icc()/pic6525996.png', file: 'games/plague_inc.html' },
+  { name: 'Cuphead', icon: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Cuphead_cover_art.png/220px-Cuphead_cover_art.png', file: 'games/cup_head.html' },
+  { name: 'Five Nights at Freddy\'s 1', icon: 'https://cdn.jsdelivr.net/gh/genizy/fnaf@latest/1/favicon.ico', file: 'games/fnaf.html' },
+  { name: 'Five Nights at Freddy\'s 2', icon: 'https://cdn.jsdelivr.net/gh/genizy/fnaf@latest/2/favicon.ico', file: 'games/fnaf_2.html' },
+  { name: 'ULTRAKILL', icon: 'https://upload.wikimedia.org/wikipedia/en/b/b4/Ultrakill_Cover_Art.jpg', file: 'games/ultrakill.html' },
+  { name: 'Bad Parenting 1', icon: 'https://rawcdn.githack.com/genizy/google-class/98d73056bfa9d476eb9fb3df8eaf418fba6d6f01/bad-parenting/TemplateData/favicon.ico', file: 'games/bad_parenting.html' },
+  { name: 'Deltarune Chapters 3 & 4', icon: 'https://cdn.jsdelivr.net/gh/genizy/web-port@bee69b8f59ea62007d9f023719ac92414cdb5a00/deltarune/logo.png', file: 'games/deltarune_chapters_3___4.html' },
+  { name: 'Deltatraveler', icon: 'https://img.itch.zone/aW1nLzcyNzg5NDAucG5n/original/WIdS7L.png', file: 'games/deltatraveler.html' }
+];
+
+// ══════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════
+function render() {
+  const q    = document.getElementById('search').value.toLowerCase();
+  const grid = document.getElementById('game-grid');
+  const emp  = document.getElementById('empty');
+  grid.innerHTML = '';
+
+  const list = q ? games.filter(g => g.name.toLowerCase().includes(q)) : games;
+
+  emp.style.display = list.length ? 'none' : 'block';
+
+  list.forEach((g, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'game-tile';
+    tile.style.animationDelay = (i * 0.025) + 's';
+
+    // delete
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '×';
+    del.title = 'Remove';
+    del.onclick = e => { e.stopPropagation(); games = games.filter(x=>x!==g); render(); toast('Removed'); };
+    tile.appendChild(del);
+
+    // thumb
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    if (g.icon) {
+      const img = document.createElement('img');
+      img.src = g.icon;
+      img.alt = g.name;
+      img.onerror = () => {
+        thumb.innerHTML = `<div class="fallback-icon">${g.name.slice(0,2).toUpperCase()}</div>`;
+      };
+      thumb.appendChild(img);
+    } else {
+      thumb.innerHTML = `<div class="fallback-icon">${g.name.slice(0,2).toUpperCase()}</div>`;
+    }
+    tile.appendChild(thumb);
+
+    // info
+    const info = document.createElement('div');
+    info.className = 'game-info';
+    info.innerHTML = `
+      <div class="game-name">${g.name}</div>
+      <div class="game-path">${g.file || ''}</div>
+    `;
+    tile.appendChild(info);
+
+    tile.addEventListener('click', () => { if (g.file) window.location.href = g.file; });
+    grid.appendChild(tile);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  DRAWER
+// ══════════════════════════════════════════════════
+function openDrawer() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('d-name').focus();
+  updatePreview();
+}
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function updatePreview() {
+  const name = document.getElementById('d-name').value.trim() || 'Game Name';
+  const icon = document.getElementById('d-icon').value.trim();
+  const file = document.getElementById('d-file').value.trim() || 'path/to/game.html';
+
+  document.getElementById('p-name').textContent = name;
+  document.getElementById('p-path').textContent = file;
+
+  const pt = document.getElementById('p-thumb');
+  if (icon) {
+    pt.innerHTML = `<img src="${icon}" onerror="this.parentElement.innerHTML='<span style=\\'font-family:var(--orb);font-size:20px;font-weight:900;color:var(--green);\\'>${name.slice(0,2).toUpperCase()}</span>'">`;
+  } else {
+    pt.innerHTML = `<span style="font-family:var(--orb);font-size:20px;font-weight:900;color:var(--green);">${name.slice(0,2).toUpperCase()}</span>`;
+  }
+}
+
+function addGame() {
+  const name = document.getElementById('d-name').value.trim();
+  const file = document.getElementById('d-file').value.trim();
+  const icon = document.getElementById('d-icon').value.trim();
+  if (!name) { toast('Enter a game name'); return; }
+  games.push({ name, file, icon: icon || null });
+  ['d-name','d-file','d-icon'].forEach(id => document.getElementById(id).value = '');
+  closeDrawer();
+  render();
+  toast(`✓ Added "${name}"`);
+}
+
+// ══════════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════════
+function tick() {
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+}
+tick(); setInterval(tick, 1000);
+
+// ══════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════
+let tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+render();
+</script>
+</body>
+</html>
